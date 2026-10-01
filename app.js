@@ -1,423 +1,328 @@
 /**
- * B-612 STARLIT OBSERVATORY PLANNER ENGINE
+ * B-612 Starlit Observatory Application Engine
  */
 
-// 1. SPACE & COSMIC LANDING DATA
-const LANDING_DATA = {
-  bgImages: [
-    'https://images.unsplash.com/photo-1506703719100-a0f3a48c0f86?auto=format&fit=crop&w=1200&q=80', // Deep Nebula
-    'https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=1200&q=80', // Satellite & Earth Horizon
-    'https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=1200&q=80', // Snowy Starry Night
-    'https://images.unsplash.com/photo-1502134249126-9f3755a50d78?auto=format&fit=crop&w=1200&q=80', // Cosmic Glow
-    'https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?auto=format&fit=crop&w=1200&q=80', // Space Orbit
-    'https://images.unsplash.com/photo-1538370965046-79c0d6907d47?auto=format&fit=crop&w=1200&q=80', // Milky Way Galaxy
-    'https://images.unsplash.com/photo-1462331940025-496dfbfc7564?auto=format&fit=crop&w=1200&q=80', // Orion Nebula
-    'https://images.unsplash.com/photo-1506703719100-a0f3a48c0f86?auto=format&fit=crop&w=1200&q=80', // Starlit Mountain Peak
-    'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1200&q=80', // Cosmic Dust
-    'https://images.unsplash.com/photo-1447433589675-4aaa569f3e05?auto=format&fit=crop&w=1200&q=80'  // Night Sky Aurora
-  ],
-  quotes: [
-    { text: "It is the time you have wasted for your rose that makes your rose so important.", author: "The Little Prince" },
-    { text: "One sees clearly only with the heart. What is essential is invisible to the eye.", author: "The Little Prince" },
-    { text: "All grown-ups were once children... but only few of them remember it.", author: "The Little Prince" },
-    { text: "I have always loved the desert. One sits down on a desert sand dune, sees nothing, hears nothing. Yet through the silence something throbs, and shines...", author: "The Little Prince" },
-    { text: "The secret of getting ahead is getting started.", author: "Mark Twain" },
-    { text: "You don't have to see the whole staircase, just take the first step.", author: "Martin Luther King Jr." },
-    { text: "Small daily improvements over time lead to stunning results.", author: "Robin Sharma" },
-    { text: "Your future is created by what you do today, not tomorrow.", author: "Robert Kiyosaki" }
-  ]
-};
-
-// 2. STATE MANAGEMENT
-let appState = {
-  dailyFocus: localStorage.getItem('b612_dailyFocus') || '',
-  stamps: JSON.parse(localStorage.getItem('b612_stamps')) || [false, false, false, false, false, false, false],
-  deadlines: JSON.parse(localStorage.getItem('b612_deadlines')) || [],
-  timeBlocks: JSON.parse(localStorage.getItem('b612_timeBlocks')) || {},
-  goals: JSON.parse(localStorage.getItem('b612_goals')) || [],
-  selectedPlannerDate: new Date().toISOString().split('T')[0],
-  timer: {
-    isRunning: false,
-    startTime: null,
-    targetDuration: 1500,
-    elapsedBeforePause: 0,
-    intervalId: null
-  }
-};
-
-// 3. INITIALIZATION
-document.addEventListener('DOMContentLoaded', () => {
-  initLanding();
-  setupEventListeners();
-  initPlannerDatePicker();
-  renderAllViews();
-});
-
-function initLanding() {
-  const randomImg = LANDING_DATA.bgImages[Math.floor(Math.random() * LANDING_DATA.bgImages.length)];
-  const randomQuote = LANDING_DATA.quotes[Math.floor(Math.random() * LANDING_DATA.quotes.length)];
-
-  document.getElementById('landing-bg').style.backgroundImage = `url('${randomImg}')`;
-  document.getElementById('quote-text').textContent = `"${randomQuote.text}"`;
-  document.getElementById('quote-author').textContent = `- ${randomQuote.author}`;
-}
-
-function setupEventListeners() {
-  // Smooth Landing Exit
-  document.getElementById('start-btn').addEventListener('click', () => {
-    const landing = document.getElementById('landing-page');
-    landing.classList.add('exiting');
-    setTimeout(() => {
-      landing.classList.add('hidden');
-      document.getElementById('app-shell').classList.remove('hidden');
-    }, 550);
-  });
-
-  // Navigation Links
-  document.querySelectorAll('.nav-item').forEach(item => {
-    item.addEventListener('click', () => {
-      document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-      document.querySelectorAll('.app-view').forEach(v => v.classList.remove('active-view'));
-
-      item.classList.add('active');
-      const target = item.getAttribute('data-target');
-      
-      // Delay render state slightly to trigger smooth CSS keyframe transition
-      requestAnimationFrame(() => {
-        document.getElementById(target).classList.add('active-view');
-      });
-    });
-  });
-
-  // Forms & Timers
-  document.getElementById('save-focus-btn').addEventListener('click', saveDailyFocus);
-  document.getElementById('add-deadline-form').addEventListener('submit', handleAddDeadline);
-  document.getElementById('add-goal-form').addEventListener('submit', handleAddGoal);
-
-  document.getElementById('quick-timer-btn').addEventListener('click', () => {
-    document.getElementById('timer-modal').classList.remove('hidden');
-  });
-  document.getElementById('close-timer').addEventListener('click', () => {
-    document.getElementById('timer-modal').classList.add('hidden');
-  });
-  document.getElementById('timer-start-btn').addEventListener('click', toggleTimer);
-  document.getElementById('timer-reset-btn').addEventListener('click', resetTimer);
-
-  document.querySelectorAll('.preset-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      const time = parseInt(e.target.getAttribute('data-time'), 10);
-      setTimerPreset(time);
-    });
-  });
-}
-
-function initPlannerDatePicker() {
-  const picker = document.getElementById('planner-date-picker');
-  picker.value = appState.selectedPlannerDate;
-  picker.addEventListener('change', (e) => {
-    appState.selectedPlannerDate = e.target.value;
-    renderTimeBlockGrid();
-  });
-}
-
-function renderAllViews() {
-  renderLobby();
-  renderHabitStamps();
-  renderDeadlinesAndBeacons();
-  renderTimeBlockGrid();
-  renderGoals();
-}
-
-// 4. LOBBY ENGINE
-function saveDailyFocus() {
-  const val = document.getElementById('daily-focus-input').value.trim();
-  if (!val) return;
-  appState.dailyFocus = val;
-  localStorage.setItem('b612_dailyFocus', val);
-  renderLobby();
-}
-
-function renderLobby() {
-  const display = document.getElementById('saved-focus-text');
-  if (appState.dailyFocus) {
-    display.textContent = `🌹 Today's Target: ${appState.dailyFocus}`;
-    display.classList.remove('hidden');
-  } else {
-    display.classList.add('hidden');
-  }
-
-  const list = document.getElementById('lobby-beacon-list');
-  list.innerHTML = '';
-  
-  const todayStr = new Date().toISOString().split('T')[0];
-  let activeCount = 0;
-
-  appState.deadlines.forEach(dl => {
-    dl.beacons.forEach(b => {
-      if (b.targetDate === todayStr && !b.completed) {
-        activeCount++;
-        const li = document.createElement('li');
-        li.className = `beacon-item ${b.stage}`;
-        li.innerHTML = `<span class="beacon-title">${b.title}</span><span class="beacon-date">Active Beacon Today</span>`;
-        list.appendChild(li);
-      }
-    });
-  });
-
-  if (activeCount === 0) {
-    list.innerHTML = `<li style="font-size: 0.85rem; color: var(--text-muted);">No starlight beacons active today. Clear skies ahead! 🌌</li>`;
-  }
-}
-
-function renderHabitStamps() {
-  const grid = document.getElementById('stamp-grid');
-  grid.innerHTML = '';
-  const days = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
-
-  days.forEach((day, idx) => {
-    const box = document.createElement('div');
-    const isStamped = appState.stamps[idx];
-    box.className = `stamp-box ${isStamped ? 'stamped' : ''}`;
-    box.innerHTML = `<span class="star">${isStamped ? '✦' : '✧'}</span><span>${day}</span>`;
-    box.addEventListener('click', () => {
-      appState.stamps[idx] = !appState.stamps[idx];
-      localStorage.setItem('b612_stamps', JSON.stringify(appState.stamps));
-      renderHabitStamps();
-    });
-    grid.appendChild(box);
-  });
-}
-
-// 5. BACKWARDS-PLANNING & DEADLINE ENGINE
-function handleAddDeadline(e) {
-  e.preventDefault();
-  const title = document.getElementById('dl-title').value.trim();
-  const dueDateStr = document.getElementById('dl-date').value;
-  const weight = document.getElementById('dl-weight').value;
-
-  if (!title || !dueDateStr) return;
-
-  const newDeadline = createAssessmentWithBeacons(title, dueDateStr, weight);
-  appState.deadlines.push(newDeadline);
-  localStorage.setItem('b612_deadlines', JSON.stringify(appState.deadlines));
-
-  e.target.reset();
-  renderDeadlinesAndBeacons();
-  renderLobby();
-}
-
-function createAssessmentWithBeacons(title, dueDateStr, weight) {
-  const dueDate = new Date(dueDateStr);
-  const today = new Date();
-  today.setHours(0,0,0,0);
-  const diffDays = Math.ceil((dueDate - today) / (1000 * 60 * 60 * 24));
-  const deadlineId = 'dl_' + Date.now();
-  const beacons = [];
-
-  const getOffsetDate = (offset) => {
-    const d = new Date(dueDate);
-    d.setDate(d.getDate() - offset);
-    return d.toISOString().split('T')[0];
+document.addEventListener("DOMContentLoaded", () => {
+  // State Storage
+  let state = JSON.parse(localStorage.getItem("b612_state")) || {
+    roseTarget: "",
+    stamps: [false, false, false, false, false, false, false],
+    spaceDust: ["Review Chapter 3 math notes", "Draft introductory paragraph"],
+    beacons: [],
+    timeBlocks: {},
+    constellations: []
   };
 
-  if (diffDays >= 7) {
-    beacons.push({
-      id: `b_scout_${deadlineId}`,
-      title: `🔭 Scout Beacon: Scope & Outline [${title}]`,
-      targetDate: getOffsetDate(7),
-      stage: 'scout',
-      completed: false
-    });
+  function saveState() {
+    localStorage.setItem("b612_state", JSON.stringify(state));
   }
 
-  if (diffDays >= 4) {
-    beacons.push({
-      id: `b_fuel_${deadlineId}`,
-      title: `🚀 Fueling Beacon: Execution Draft [${title}]`,
-      targetDate: getOffsetDate(3),
-      stage: 'fueling',
-      completed: false
-    });
+  // Quotes Database
+  const quotes = [
+    { text: "The stars are beautiful, because of a flower that cannot be seen...", author: "Antoine de Saint-Exupéry" },
+    { text: "Straight ahead of him, nobody can go very far.", author: "The Little Prince" },
+    { text: "It is far more difficult to judge oneself than to judge others.", author: "The King" },
+    { text: "For some, who are travelers, the stars are guides.", author: "Antoine de Saint-Exupéry" }
+  ];
+
+  // Initialize Landing Page Sky Phase
+  const hour = new Date().getHours();
+  const portal = document.getElementById("landing-portal");
+  const phaseTag = document.getElementById("sky-phase-tag");
+  
+  if (hour >= 5 && hour < 9) {
+    portal.classList.add("sky-dawn");
+    phaseTag.innerText = "Dawn Horizon";
+  } else if (hour >= 9 && hour < 17) {
+    portal.classList.add("sky-zenith");
+    phaseTag.innerText = "Stellar Zenith";
+  } else if (hour >= 17 && hour < 21) {
+    portal.classList.add("sky-twilight");
+    phaseTag.innerText = "Twilight Crimson";
+  } else {
+    portal.classList.add("sky-midnight");
+    phaseTag.innerText = "Deep Cosmic Midnight";
   }
 
-  if (diffDays >= 1) {
-    beacons.push({
-      id: `b_land_${deadlineId}`,
-      title: `🪐 Landing Beacon: Final Polish [${title}]`,
-      targetDate: getOffsetDate(1),
-      stage: 'landing',
-      completed: false
+  // Set Random Quote
+  const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
+  document.getElementById("portal-quote").innerText = `"${randomQuote.text}"`;
+
+  // Enter App Transition
+  document.getElementById("btn-enter").addEventListener("click", () => {
+    portal.style.transform = "scale(1.1)";
+    portal.style.opacity = "0";
+    setTimeout(() => {
+      portal.classList.add("hidden");
+      document.getElementById("app-shell").classList.remove("hidden");
+    }, 800);
+  });
+
+  // Sidebar View Switcher
+  const navItems = document.querySelectorAll(".nav-item");
+  const viewPanels = document.querySelectorAll(".view-panel");
+
+  navItems.forEach(item => {
+    item.addEventListener("click", () => {
+      const targetView = item.dataset.view;
+      navItems.forEach(n => n.classList.remove("active"));
+      viewPanels.forEach(p => p.classList.remove("active"));
+      
+      item.classList.add("active");
+      document.getElementById(targetView).classList.add("active");
     });
+  });
+
+  // --- LOBBY VIEW LOGIC ---
+  const roseInput = document.getElementById("input-rose-target");
+  const rosePetals = document.getElementById("rose-petals");
+  const starlightGlow = document.getElementById("starlight-glow");
+
+  if (state.roseTarget) {
+    roseInput.value = state.roseTarget;
+    rosePetals.style.filter = "drop-shadow(0 0 12px #e06c75)";
   }
 
-  return { id: deadlineId, title, dueDate: dueDateStr, weight, beacons };
-}
+  document.getElementById("btn-save-rose").addEventListener("click", () => {
+    state.roseTarget = roseInput.value;
+    saveState();
+    rosePetals.style.transform = "rotate(0deg) scale(1.1)";
+    setTimeout(() => rosePetals.style.transform = "rotate(-45deg) scale(1)", 300);
+  });
 
-function renderDeadlinesAndBeacons() {
-  const feedList = document.getElementById('beacon-feed-list');
-  feedList.innerHTML = '';
+  // Render Loyalty Stamps
+  const stampsGrid = document.getElementById("stamps-grid");
+  function renderStamps() {
+    stampsGrid.innerHTML = "";
+    let count = 0;
+    state.stamps.forEach((stamped, index) => {
+      if (stamped) count++;
+      const box = document.createElement("div");
+      box.className = `stamp-box ${stamped ? 'stamped' : ''}`;
+      box.innerText = stamped ? "✦" : "";
+      box.addEventListener("click", () => {
+        state.stamps[index] = !state.stamps[index];
+        saveState();
+        renderStamps();
+      });
+      stampsGrid.appendChild(box);
+    });
+    document.getElementById("stamp-counter").innerText = `${count} / 5 Stamps for Recharge`;
+  }
+  renderStamps();
 
-  const dateWorkload = {};
+  // Space Dust Collector Logic
+  const dustInput = document.getElementById("input-dust-task");
+  const dustList = document.getElementById("dust-list");
 
-  appState.deadlines.forEach(dl => {
-    const w = dl.weight === 'high' ? 5 : (dl.weight === 'medium' ? 3 : 1);
-    dateWorkload[dl.dueDate] = (dateWorkload[dl.dueDate] || 0) + w;
+  function renderDust() {
+    dustList.innerHTML = "";
+    state.spaceDust.forEach((task, index) => {
+      const li = document.createElement("li");
+      li.className = "dust-item";
+      li.innerHTML = `<span>🌫️ ${task}</span><span class="btn-remove">&times;</span>`;
+      li.querySelector(".btn-remove").addEventListener("click", () => {
+        state.spaceDust.splice(index, 1);
+        saveState();
+        renderDust();
+      });
+      dustList.appendChild(li);
+    });
+  }
+  renderDust();
 
-    dl.beacons.forEach(b => {
-      dateWorkload[b.targetDate] = (dateWorkload[b.targetDate] || 0) + 1;
+  document.getElementById("btn-add-dust").addEventListener("click", () => {
+    if (dustInput.value.trim()) {
+      state.spaceDust.push(dustInput.value.trim());
+      dustInput.value = "";
+      saveState();
+      renderDust();
+    }
+  });
 
-      const li = document.createElement('li');
-      li.className = `beacon-item ${b.stage}`;
-      li.innerHTML = `
-        <span class="beacon-title">${b.title}</span>
-        <span class="beacon-date">Scheduled: ${b.targetDate}</span>
+  // --- PLANNER VIEW LOGIC ---
+  const beaconsList = document.getElementById("beacons-list");
+  document.getElementById("form-beacon").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const title = document.getElementById("beacon-title").value;
+    const date = document.getElementById("beacon-date").value;
+    
+    state.beacons.push({ id: Date.now(), title, date });
+    saveState();
+    renderBeacons();
+    e.target.reset();
+  });
+
+  function renderBeacons() {
+    beaconsList.innerHTML = "";
+    state.beacons.forEach(b => {
+      const div = document.createElement("div");
+      div.className = "beacon-card";
+      div.innerHTML = `
+        <h4>${b.title} (${b.date})</h4>
+        <span class="beacon-step step-scout">🔭 Scout (T-7): Scope Guidelines</span>
+        <span class="beacon-step step-fueling">🚀 Fueling (T-3): Heavy Focus Blocks</span>
+        <span class="beacon-step step-landing">🛬 Landing (T-1): Final Polish</span>
       `;
-      feedList.appendChild(li);
+      beaconsList.appendChild(div);
     });
+  }
+  renderBeacons();
+
+  // Orbital Flight Timeline (48 Slots)
+  const timelineScroll = document.getElementById("timeline-scroll");
+  const currentHour = new Date().getHours();
+
+  for (let i = 0; i < 24; i++) {
+    for (let j = 0; j < 2; j++) {
+      const timeStr = `${String(i).padStart(2, '0')}:${j === 0 ? '00' : '30'}`;
+      const slot = document.createElement("div");
+      slot.className = `time-slot ${i === currentHour && j === 0 ? 'current' : ''}`;
+      
+      slot.innerHTML = `
+        <span class="time-label">${timeStr}</span>
+        <select class="slot-select">
+          <option value="">-- Open Orbit --</option>
+          <option value="king">B-325 King (Admin)</option>
+          <option value="geographer">B-328 Geographer (Study)</option>
+          <option value="lamplighter">B-329 Lamplighter (Sprint)</option>
+          <option value="oasis">Earth Oasis (Rest)</option>
+        </select>
+        ${i === currentHour && j === 0 ? '<span class="prince-icon">👑 (Prince)</span>' : ''}
+      `;
+      timelineScroll.appendChild(slot);
+    }
+  }
+
+  // --- GOAL STUDIO LOGIC ---
+  const svgCanvas = document.getElementById("constellation-svg");
+  const constellationList = document.getElementById("constellations-list");
+  let activeConstellation = null;
+
+  document.getElementById("form-constellation").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const title = document.getElementById("constellation-title").value;
+    const milestone = document.getElementById("constellation-milestone").value;
+
+    const newConstellation = {
+      id: Date.now(),
+      title,
+      milestone,
+      completed: false
+    };
+
+    state.constellations.push(newConstellation);
+    saveState();
+    renderConstellations();
+    e.target.reset();
   });
 
-  const isOverloaded = Object.values(dateWorkload).some(score => score >= 6);
-  const warningBanner = document.getElementById('overload-warning');
-  if (isOverloaded) {
-    warningBanner.classList.remove('hidden');
-  } else {
-    warningBanner.classList.add('hidden');
-  }
-}
-
-// 6. 30-MINUTE TIME BLOCK GRID
-function renderTimeBlockGrid() {
-  const grid = document.getElementById('time-block-grid');
-  grid.innerHTML = '';
-
-  const targetDate = appState.selectedPlannerDate;
-  const dayData = appState.timeBlocks[targetDate] || {};
-
-  for (let i = 0; i < 48; i++) {
-    const hour = Math.floor(i / 2).toString().padStart(2, '0');
-    const mins = i % 2 === 0 ? '00' : '30';
-    const timeLabel = `${hour}:${mins}`;
-
-    const slot = document.createElement('div');
-    slot.className = 'time-slot';
-
-    const label = document.createElement('span');
-    label.className = 'time-label';
-    label.textContent = timeLabel;
-
-    const input = document.createElement('input');
-    input.type = 'text';
-    input.className = 'slot-input';
-    input.value = dayData[i] || '';
-    input.placeholder = i % 2 === 0 ? '✨ Block schedule...' : '';
-
-    input.addEventListener('change', (e) => {
-      if (!appState.timeBlocks[targetDate]) appState.timeBlocks[targetDate] = {};
-      appState.timeBlocks[targetDate][i] = e.target.value;
-      localStorage.setItem('b612_timeBlocks', JSON.stringify(appState.timeBlocks));
+  function renderConstellations() {
+    constellationList.innerHTML = "";
+    state.constellations.forEach(c => {
+      const div = document.createElement("div");
+      div.className = "beacon-card";
+      div.style.cursor = "pointer";
+      div.innerHTML = `<h4>✨ ${c.title}</h4><p class="card-desc">${c.milestone}</p>`;
+      div.addEventListener("click", () => drawConstellation(c));
+      constellationList.appendChild(div);
     });
-
-    slot.appendChild(label);
-    slot.appendChild(input);
-    grid.appendChild(slot);
-  }
-}
-
-// 7. GOAL STUDIO
-function handleAddGoal(e) {
-  e.preventDefault();
-  const goalTitle = document.getElementById('goal-title').value.trim();
-  const monthlyTarget = document.getElementById('monthly-target').value.trim();
-  const dailyAction = document.getElementById('daily-action').value.trim();
-
-  if (!goalTitle || !monthlyTarget || !dailyAction) return;
-
-  const newGoal = { id: 'g_' + Date.now(), goalTitle, monthlyTarget, dailyAction };
-  appState.goals.push(newGoal);
-  localStorage.setItem('b612_goals', JSON.stringify(appState.goals));
-
-  e.target.reset();
-  renderGoals();
-}
-
-function renderGoals() {
-  const container = document.getElementById('goal-tree-container');
-  container.innerHTML = '';
-
-  if (appState.goals.length === 0) {
-    container.innerHTML = `<p style="color: var(--text-muted); font-size: 0.9rem;">No constellations mapped yet. Enter your vision above!</p>`;
-    return;
   }
 
-  appState.goals.forEach(g => {
-    const card = document.createElement('div');
-    card.className = 'goal-card';
-    card.innerHTML = `
-      <div class="goal-title">🌌 ${g.goalTitle}</div>
-      <div class="goal-sub">🪐 Monthly Target: ${g.monthlyTarget}</div>
-      <div class="goal-action">⚡ Daily Action: ${g.dailyAction}</div>
+  function drawConstellation(c) {
+    activeConstellation = c;
+    document.getElementById("active-constellation-title").innerText = c.title;
+    document.getElementById("btn-complete-constellation").classList.remove("hidden");
+
+    svgCanvas.innerHTML = `
+      <defs>
+        <filter id="glow"><feGaussianBlur stdDeviation="3" result="coloredBlur"/><feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      </defs>
+      <!-- Core Star -->
+      <circle cx="300" cy="100" r="8" fill="#f4c430" filter="url(#glow)" />
+      <!-- Nodes -->
+      <circle cx="180" cy="220" r="6" fill="#61afef" />
+      <circle cx="420" cy="220" r="6" fill="#e5c07b" />
+      <circle cx="300" cy="320" r="6" fill="#a9a1e1" />
+      <!-- Lines -->
+      <line x1="300" y1="100" x2="180" y2="220" stroke="rgba(255,255,255,0.2)" stroke-width="2" />
+      <line x1="300" y1="100" x2="420" y2="220" stroke="rgba(255,255,255,0.2)" stroke-width="2" />
+      <line x1="180" y1="220" x2="300" y2="320" stroke="rgba(255,255,255,0.2)" stroke-width="2" />
+      <line x1="420" y1="220" x2="300" y2="320" stroke="rgba(255,255,255,0.2)" stroke-width="2" />
     `;
-    container.appendChild(card);
+  }
+
+  document.getElementById("btn-complete-constellation").addEventListener("click", () => {
+    if (!activeConstellation) return;
+    svgCanvas.querySelectorAll("line").forEach(line => {
+      line.setAttribute("stroke", "#f4c430");
+      line.setAttribute("filter", "url(#glow)");
+    });
+    alert("✨ Constellation fully illuminated! The Little Prince sits at the edge of B-612 to admire your sky.");
   });
-}
 
-// 8. SPEED TIMER (TAB-SLEEP PROOF)
-function toggleTimer() {
-  if (appState.timer.isRunning) {
-    pauseTimer();
-  } else {
-    startTimer();
+  renderConstellations();
+
+  // --- VOLCANO TIMER LOGIC ---
+  const volcanoModal = document.getElementById("volcano-modal");
+  const timerDisplay = document.getElementById("timer-display");
+  const btnToggle = document.getElementById("btn-timer-toggle");
+  
+  let timerInterval = null;
+  let timeRemaining = 25 * 60;
+  let isRunning = false;
+
+  document.getElementById("btn-open-volcano").addEventListener("click", () => volcanoModal.classList.remove("hidden"));
+  document.getElementById("btn-close-volcano").addEventListener("click", () => volcanoModal.classList.add("hidden"));
+
+  document.querySelectorAll(".btn-preset").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".btn-preset").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      timeRemaining = parseInt(btn.dataset.minutes) * 60;
+      updateTimerDisplay();
+      if (isRunning) toggleTimer();
+    });
+  });
+
+  function updateTimerDisplay() {
+    const mins = Math.floor(timeRemaining / 60);
+    const secs = timeRemaining % 60;
+    timerDisplay.innerText = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
   }
-}
 
-function startTimer() {
-  appState.timer.isRunning = true;
-  appState.timer.startTime = Date.now();
-  document.getElementById('timer-start-btn').textContent = 'Pause';
+  function toggleTimer() {
+    if (isRunning) {
+      clearInterval(timerInterval);
+      btnToggle.innerText = "Start Session";
+      isRunning = false;
+    } else {
+      const startTime = Date.now();
+      const initialRemaining = timeRemaining;
 
-  appState.timer.intervalId = setInterval(updateTimerTick, 200);
-}
+      timerInterval = setInterval(() => {
+        const elapsed = Math.floor((Date.now() - startTime) / 1000);
+        timeRemaining = initialRemaining - elapsed;
 
-function pauseTimer() {
-  appState.timer.isRunning = false;
-  clearInterval(appState.timer.intervalId);
-  appState.timer.elapsedBeforePause += Math.floor((Date.now() - appState.timer.startTime) / 1000);
-  document.getElementById('timer-start-btn').textContent = 'Resume';
-}
+        if (timeRemaining <= 0) {
+          clearInterval(timerInterval);
+          timeRemaining = 0;
+          isRunning = false;
+          btnToggle.innerText = "Start Session";
+          alert("🌋 Focus session complete! Volcano thermal energy replenished.");
+        }
+        updateTimerDisplay();
+      }, 500);
 
-function resetTimer() {
-  clearInterval(appState.timer.intervalId);
-  appState.timer.isRunning = false;
-  appState.timer.elapsedBeforePause = 0;
-  document.getElementById('timer-start-btn').textContent = 'Start Session';
-  renderTimerClock(appState.timer.targetDuration);
-}
-
-function setTimerPreset(seconds) {
-  resetTimer();
-  appState.timer.targetDuration = seconds;
-  renderTimerClock(seconds);
-}
-
-function updateTimerTick() {
-  const now = Date.now();
-  const currentSessionElapsed = Math.floor((now - appState.timer.startTime) / 1000);
-  const totalElapsed = appState.timer.elapsedBeforePause + currentSessionElapsed;
-  const remaining = appState.timer.targetDuration - totalElapsed;
-
-  if (remaining <= 0) {
-    clearInterval(appState.timer.intervalId);
-    appState.timer.isRunning = false;
-    renderTimerClock(0);
-    alert('Sprint Complete! Take a steam break ☕');
-    resetTimer();
-  } else {
-    renderTimerClock(remaining);
+      btnToggle.innerText = "Pause Session";
+      isRunning = true;
+    }
   }
-}
 
-function renderTimerClock(seconds) {
-  const m = Math.floor(seconds / 60).toString().padStart(2, '0');
-  const s = (seconds % 60).toString().padStart(2, '0');
-  document.getElementById('timer-clock').textContent = `${m}:${s}`;
-}
+  btnToggle.addEventListener("click", toggleTimer);
+  document.getElementById("btn-timer-reset").addEventListener("click", () => {
+    if (isRunning) toggleTimer();
+    timeRemaining = 25 * 60;
+    updateTimerDisplay();
+  });
+});
