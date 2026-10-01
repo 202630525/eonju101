@@ -1,202 +1,240 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>B-612 Starlit Observatory Planner</title>
-  <link rel="stylesheet" href="style.css">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <title>B-612 Starlit Observatory</title>
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Cinzel:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
 
-  <!-- LANDING PAGE -->
-  <section id="landing-page" class="view active">
-    <div id="landing-bg" class="bg-cover"></div>
-    <div class="landing-overlay">
-      <div class="quote-card">
-        <svg class="icon-rose" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-          <path d="M12 21a9 9 0 000-18 9 9 0 000 18z" stroke-dasharray="2 2"/>
-          <path d="M12 7c-1.5 0-3 1.2-3 2.5 0 2 3 3.5 3 5 0-1.5 3-3 3-5 0-1.3-1.5-2.5-3-2.5z" fill="#E06C75"/>
-          <path d="M12 14.5V19"/>
-        </svg>
-        <p id="quote-text">"The stars are beautiful, because of a flower that cannot be seen."</p>
-        <span id="quote-author">- The Little Prince</span>
+  <!-- LANDING PAGE OVERLAY (OBSERVATORY PORTAL) -->
+  <div id="landing-portal" class="landing-portal">
+    <div class="starfield"></div>
+    <div class="nebula-bg"></div>
+    
+    <div class="eyepiece-wrapper">
+      <div class="brass-ring"></div>
+      <div class="glass-eyepiece">
+        <div class="sky-phase-tag" id="sky-phase-tag">Midday Zenith</div>
+        <div class="quote-content">
+          <p id="portal-quote">"The stars are beautiful, because of a flower that cannot be seen..."</p>
+          <span class="quote-author">— Antoine de Saint-Exupéry</span>
+        </div>
       </div>
-      <button id="start-btn" class="glow-btn">
-        <span>공부 시작하자!^^</span>
-        <svg class="btn-star" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7-6.3-4.6-6.3 4.6 2.3-7-6-4.6h7.6z"/></svg>
-      </button>
     </div>
-  </section>
 
-  <!-- MAIN APP SHELL -->
-  <div id="app-shell" class="hidden">
-    <!-- Collapsible Sidebar -->
-    <nav id="sidebar" class="sidebar">
+    <button id="btn-enter" class="btn-enter">
+      <span class="button-glow"></span>
+      <span class="button-text">공부 시작하자!^^</span>
+    </button>
+
+    <div class="asteroid-b612-horizon">
+      <div class="horizon-rose"></div>
+      <div class="horizon-volcano v1"></div>
+      <div class="horizon-volcano v2"></div>
+    </div>
+  </div>
+
+  <!-- MAIN APPLICATION SHELL -->
+  <div id="app-shell" class="app-shell hidden">
+    <!-- SIDEBAR NAVIGATION -->
+    <aside class="sidebar">
       <div class="brand">
-        <svg class="brand-planet" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="12" cy="12" r="6" fill="#F4C430" fill-opacity="0.2" stroke="#F4C430"/>
-          <path d="M2 12c4-3 12-3 20 0M2 12c4 3 12 3 20 0" stroke="#F4C430"/>
-          <path d="M17 5l1 2 2 1-2 1-1 2-1-2-2-1 2-1z" fill="#F4C430" stroke="none"/>
-        </svg>
-        <span class="brand-text">B-612 Observatory</span>
+        <div class="planet-icon"></div>
+        <h2>B-612 <span>Observatory</span></h2>
       </div>
 
-      <ul class="nav-links">
-        <li data-target="lobby-view" class="nav-item active">
-          <svg class="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><path d="M9 22V12h6v10"/></svg>
-          Today's Lobby
-        </li>
-        <li data-target="planner-view" class="nav-item">
-          <svg class="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-          Integrated Planner
-        </li>
-        <li data-target="goals-view" class="nav-item">
-          <svg class="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="2"/><circle cx="6" cy="6" r="2"/><circle cx="18" cy="6" r="2"/><circle cx="6" cy="18" r="2"/><circle cx="18" cy="18" r="2"/><line x1="7.5" y1="7.5" x2="10.5" y2="10.5"/><line x1="16.5" y1="7.5" x2="13.5" y2="10.5"/><line x1="7.5" y1="16.5" x2="10.5" y2="13.5"/><line x1="16.5" y1="16.5" x2="13.5" y2="13.5"/></svg>
-          Goal Studio
-        </li>
-      </ul>
+      <nav class="nav-menu">
+        <button class="nav-item active" data-view="view-lobby">
+          <span class="nav-icon">🌹</span> Today's Lobby
+        </button>
+        <button class="nav-item" data-view="view-planner">
+          <span class="nav-icon">🪐</span> Orbital Planner
+        </button>
+        <button class="nav-item" data-view="view-studio">
+          <span class="nav-icon">🌌</span> Goal Studio
+        </button>
+      </nav>
 
       <div class="sidebar-footer">
-        <button id="quick-timer-btn" class="timer-pill">
-          <svg class="icon-inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-          <span>Speed Timer</span>
+        <button id="btn-open-volcano" class="btn-volcano-launcher">
+          <span class="flame-icon">🌋</span> Volcano Engine
         </button>
       </div>
-    </nav>
+    </aside>
 
-    <!-- Content Workspace -->
-    <main id="main-content">
+    <!-- MAIN WORKSPACE -->
+    <main class="workspace">
       
-      <!-- VIEW 1: LOBBY -->
-      <section id="lobby-view" class="app-view active-view">
-        <header class="view-header">
-          <h2>Welcome back, Starlit Explorer</h2>
-          <p class="subtitle">What is the ONE thing that will make today feel like a win?</p>
+      <!-- VIEW 1: TODAY'S LOBBY -->
+      <section id="view-lobby" class="view-panel active">
+        <header class="panel-header">
+          <h1>Observatory Deck</h1>
+          <p class="subtitle">Focus your gaze on today's single most critical pursuit.</p>
         </header>
 
         <div class="lobby-grid">
-          <!-- Daily Priority Widget -->
-          <div class="card priority-card">
-            <h3>
-              <svg class="icon-title" viewBox="0 0 24 24" fill="none" stroke="#E06C75" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
-              Today's Rose (Main Target)
-            </h3>
-            <div class="input-group">
-              <input type="text" id="daily-focus-input" placeholder="Enter your key milestone for today...">
-              <button id="save-focus-btn" class="sm-btn">Set Target</button>
+          <!-- THE ROSE UNDER GLASS -->
+          <div class="glass-card rose-card">
+            <div class="card-title">
+              <span class="dot rose-dot"></span> The Rose Under Glass
+              <span class="badge">Primary Focus</span>
             </div>
-            <p id="saved-focus-text" class="focus-display hidden"></p>
+            
+            <div class="rose-display-container">
+              <div class="glass-dome" id="glass-dome">
+                <div class="starlight-glow" id="starlight-glow"></div>
+                <div class="rose-stem"></div>
+                <div class="rose-petals" id="rose-petals"></div>
+              </div>
+            </div>
+
+            <div class="rose-input-group">
+              <input type="text" id="input-rose-target" placeholder="Name your Rose for today..." maxlength="60">
+              <button id="btn-save-rose" class="btn-gold">Protect Rose</button>
+            </div>
           </div>
 
-          <!-- Starlit Stamp Card (Habits) -->
-          <div class="card habit-card">
-            <h3>
-              <svg class="icon-title" viewBox="0 0 24 24" fill="none" stroke="#F4C430" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-              Loyalty Stamp Card (Habit Streaks)
-            </h3>
-            <p class="card-sub">Stamp 5 stars this week to earn your guilt-free recharge zone.</p>
-            <div id="stamp-grid" class="stamp-grid"></div>
+          <!-- LOYALTY STAMP CARD -->
+          <div class="glass-card stamp-card">
+            <div class="card-title">
+              <span class="dot gold-dot"></span> Taming Rituals
+              <span class="badge">Weekly Habits</span>
+            </div>
+            <p class="card-desc">"If you tame me, then we shall need each other."</p>
+            
+            <div class="stamps-grid" id="stamps-grid">
+              <!-- Rendered via JS -->
+            </div>
+            
+            <div class="stamp-footer">
+              <span id="stamp-counter">0 / 5 Stamps for Recharge</span>
+            </div>
           </div>
 
-          <!-- Today's Beacon Overview -->
-          <div class="card overview-card">
-            <h3>
-              <svg class="icon-title" viewBox="0 0 24 24" fill="none" stroke="#8DA399" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
-              Today's Starlight Beacons
-            </h3>
-            <ul id="lobby-beacon-list" class="item-list"></ul>
+          <!-- SPACE DUST COLLECTOR -->
+          <div class="glass-card dust-card">
+            <div class="card-title">
+              <span class="dot silver-dot"></span> Space Dust Collector
+              <span class="badge">Drifting Backlog</span>
+            </div>
+            <p class="card-desc">Unfinished tasks floating gently through space.</p>
+
+            <div class="dust-input-row">
+              <input type="text" id="input-dust-task" placeholder="Catch a floating task...">
+              <button id="btn-add-dust" class="btn-silver">+</button>
+            </div>
+
+            <ul class="dust-list" id="dust-list">
+              <!-- Rendered via JS -->
+            </ul>
           </div>
         </div>
       </section>
 
       <!-- VIEW 2: INTEGRATED PLANNER -->
-      <section id="planner-view" class="app-view">
-        <div class="planner-dual-pane">
-          <!-- Left Pane: Assessment Feed & Beacons -->
-          <div class="pane left-pane card">
-            <h3>📌 Assessment & Destination Stars</h3>
-            <form id="add-deadline-form" class="stack-form">
-              <input type="text" id="dl-title" placeholder="Assignment / Exam Title" required>
-              <div class="form-row">
-                <input type="date" id="dl-date" required>
-                <select id="dl-weight">
-                  <option value="low">Light (Weight 1)</option>
-                  <option value="medium" selected>Medium (Weight 3)</option>
-                  <option value="high">Heavy Exam (Weight 5)</option>
-                </select>
-              </div>
-              <button type="submit" class="sm-btn full-btn">+ Drop Anchor Star</button>
+      <section id="view-planner" class="view-panel">
+        <header class="panel-header">
+          <h1>Orbital Flight Path & Assessment Beacons</h1>
+          <p class="subtitle">Back-calculate major milestones and navigate today's asteroid hoppings.</p>
+        </header>
+
+        <div class="planner-grid">
+          <!-- LEFT: ASSESSMENT BEACONS -->
+          <div class="glass-card beacons-card">
+            <h3>📌 Assessment Beacons</h3>
+            <p class="card-desc">Add a major deadline to back-calculate prep milestones.</p>
+            
+            <form id="form-beacon" class="beacon-form">
+              <input type="text" id="beacon-title" placeholder="Exam or Project Title" required>
+              <input type="date" id="beacon-date" required>
+              <button type="submit" class="btn-gold">+ Set Beacon</button>
             </form>
 
-            <hr class="divider">
-            
-            <h4>Generated Navigation Beacons</h4>
-            <div id="overload-warning" class="warning-banner hidden">
-              ⚠️️ High cosmic density on upcoming days! Consider sliding a Fueling Beacon earlier.
+            <div class="beacons-list" id="beacons-list">
+              <!-- Rendered via JS -->
             </div>
-            <ul id="beacon-feed-list" class="item-list"></ul>
           </div>
 
-          <!-- Right Pane: 30-Min Time Block Grid -->
-          <div class="pane right-pane card">
-            <div class="pane-header">
-              <h3>⏱️ 30-Minute Starlit Schedule</h3>
-              <input type="date" id="planner-date-picker">
+          <!-- RIGHT: 30-MIN ORBITAL TIMELINE -->
+          <div class="glass-card timeline-card">
+            <div class="timeline-header">
+              <h3>⏱️ Today's Orbital Stations</h3>
+              <div class="legend">
+                <span class="tag king">B-325 Admin</span>
+                <span class="tag geographer">B-328 Study</span>
+                <span class="tag lamplighter">B-329 Sprint</span>
+                <span class="tag oasis">Earth Oasis</span>
+              </div>
             </div>
-            <div id="time-block-grid" class="block-grid"></div>
+
+            <div class="timeline-scroll" id="timeline-scroll">
+              <!-- 48 30-min time slots rendered by JS -->
+            </div>
           </div>
         </div>
       </section>
 
       <!-- VIEW 3: GOAL STUDIO -->
-      <section id="goals-view" class="app-view">
-        <header class="view-header">
-          <h2>🌌 Constellation Goal Tree</h2>
-          <p class="subtitle">Deconstruct 6-month visions into daily actionable blocks.</p>
+      <section id="view-studio" class="view-panel">
+        <header class="panel-header">
+          <h1>Constellation Goal Studio</h1>
+          <p class="subtitle">Turn long-term ambitions into geometric maps of starlight.</p>
         </header>
 
-        <div class="card">
-          <form id="add-goal-form" class="stack-form">
-            <input type="text" id="goal-title" placeholder="Macro Goal (e.g., Maintain 3.8 GPA in Computer Science)" required>
-            <div class="form-row">
-              <input type="text" id="monthly-target" placeholder="Monthly Target (e.g., Master Dynamic Programming)" required>
-              <input type="text" id="daily-action" placeholder="Daily Action (e.g., Solve 1 Practice Problem)" required>
+        <div class="studio-grid">
+          <div class="glass-card studio-controls">
+            <h3>🌌 Chart New Constellation</h3>
+            <form id="form-constellation">
+              <input type="text" id="constellation-title" placeholder="Macro Vision (e.g., Master CS)" required>
+              <input type="text" id="constellation-milestone" placeholder="Major Milestone (Anchor Star)" required>
+              <button type="submit" class="btn-gold">Light Constellation</button>
+            </form>
+            
+            <div class="constellations-list" id="constellations-list">
+              <!-- Rendered via JS -->
             </div>
-            <button type="submit" class="sm-btn">+ Map Constellation Goal</button>
-          </form>
-        </div>
+          </div>
 
-        <div class="card">
-          <h3>Active Goal Constellations</h3>
-          <div id="goal-tree-container" class="goal-tree-container"></div>
+          <div class="glass-card studio-canvas-card">
+            <div class="canvas-header">
+              <span id="active-constellation-title">Select or Create a Constellation</span>
+              <button id="btn-complete-constellation" class="btn-gold hidden">Ignite 100% Light</button>
+            </div>
+            <div class="canvas-wrapper">
+              <svg id="constellation-svg" viewBox="0 0 600 400"></svg>
+            </div>
+          </div>
         </div>
       </section>
 
     </main>
   </div>
 
-  <!-- SPEED TIMER MODAL -->
-  <div id="timer-modal" class="modal hidden">
-    <div class="modal-content card">
-      <span id="close-timer" class="close-btn">&times;</span>
-      <div class="timer-display">
-        <div class="prince-status" id="timer-mascot">
-          <svg class="icon-mascot" viewBox="0 0 24 24" fill="none" stroke="#C07A45" stroke-width="1.8"><path d="M18 8h1a4 4 0 010 8h-1M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
-        </div>
-        <h1 id="timer-clock">25:00</h1>
-        <p id="timer-label">Espresso Study Sprint</p>
+  <!-- VOLCANO FOCUS ENGINE MODAL -->
+  <div id="volcano-modal" class="modal-overlay hidden">
+    <div class="glass-card modal-content">
+      <button id="btn-close-volcano" class="modal-close">&times;</button>
+      
+      <div class="volcano-header">
+        <div class="volcano-flame">🌋</div>
+        <h2>Volcano Focus Engine</h2>
+        <p>Heat the active volcanoes of B-612 with focused work energy.</p>
       </div>
+
+      <div class="timer-display" id="timer-display">25:00</div>
+      
       <div class="timer-presets">
-        <button class="preset-btn" data-time="1500">25m Espresso</button>
-        <button class="preset-btn" data-time="3000">50m Deep Roast</button>
-        <button class="preset-btn" data-time="300">5m Steam Break</button>
+        <button class="btn-preset active" data-minutes="25">25m Espresso</button>
+        <button class="btn-preset" data-minutes="50">50m Deep Roast</button>
+        <button class="btn-preset" data-minutes="5">5m Steam Break</button>
       </div>
-      <div class="timer-controls">
-        <button id="timer-start-btn" class="glow-btn">Start Session</button>
-        <button id="timer-reset-btn" class="secondary-btn">Reset</button>
+
+      <div class="timer-actions">
+        <button id="btn-timer-toggle" class="btn-gold lg">Start Session</button>
+        <button id="btn-timer-reset" class="btn-silver">Reset</button>
       </div>
     </div>
   </div>
