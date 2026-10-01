@@ -1,36 +1,34 @@
 /**
- * B-612 STARLIT CAFÉ PLANNER ENGINE
+ * B-612 STARLIT OBSERVATORY PLANNER ENGINE
  */
 
-// 1. LANDING PAGE DATA (10 Dynamic Nature BGs & Quotes)
+// 1. SPACE & COSMIC LANDING DATA
 const LANDING_DATA = {
   bgImages: [
-    'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1200&q=80',
-    'https://images.unsplash.com/photo-1511497584788-8767611136f0?auto=format&fit=crop&w=1200&q=80',
-    'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=1200&q=80',
-    'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=1200&q=80',
-    'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80',
-    'https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=1200&q=80',
-    'https://images.unsplash.com/photo-1472214103451-9374bd1c798e?auto=format&fit=crop&w=1200&q=80',
-    'https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=1200&q=80',
-    'https://images.unsplash.com/photo-1426604966848-d7adac402bff?auto=format&fit=crop&w=1200&q=80',
-    'https://images.unsplash.com/photo-1418065460487-3e41a6c84dc5?auto=format&fit=crop&w=1200&q=80'
+    'https://images.unsplash.com/photo-1506703719100-a0f3a48c0f86?auto=format&fit=crop&w=1200&q=80', // Deep Nebula
+    'https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=1200&q=80', // Satellite & Earth Horizon
+    'https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=1200&q=80', // Snowy Starry Night
+    'https://images.unsplash.com/photo-1502134249126-9f3755a50d78?auto=format&fit=crop&w=1200&q=80', // Cosmic Glow
+    'https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?auto=format&fit=crop&w=1200&q=80', // Space Orbit
+    'https://images.unsplash.com/photo-1538370965046-79c0d6907d47?auto=format&fit=crop&w=1200&q=80', // Milky Way Galaxy
+    'https://images.unsplash.com/photo-1462331940025-496dfbfc7564?auto=format&fit=crop&w=1200&q=80', // Orion Nebula
+    'https://images.unsplash.com/photo-1506703719100-a0f3a48c0f86?auto=format&fit=crop&w=1200&q=80', // Starlit Mountain Peak
+    'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1200&q=80', // Cosmic Dust
+    'https://images.unsplash.com/photo-1447433589675-4aaa569f3e05?auto=format&fit=crop&w=1200&q=80'  // Night Sky Aurora
   ],
   quotes: [
     { text: "It is the time you have wasted for your rose that makes your rose so important.", author: "The Little Prince" },
     { text: "One sees clearly only with the heart. What is essential is invisible to the eye.", author: "The Little Prince" },
+    { text: "All grown-ups were once children... but only few of them remember it.", author: "The Little Prince" },
+    { text: "I have always loved the desert. One sits down on a desert sand dune, sees nothing, hears nothing. Yet through the silence something throbs, and shines...", author: "The Little Prince" },
     { text: "The secret of getting ahead is getting started.", author: "Mark Twain" },
     { text: "You don't have to see the whole staircase, just take the first step.", author: "Martin Luther King Jr." },
-    { text: "Focus is a matter of deciding what things you're NOT going to do.", author: "John Carmack" },
-    { text: "Action is the foundational key to all success.", author: "Pablo Picasso" },
-    { text: "Well done is better than well said.", author: "Benjamin Franklin" },
     { text: "Small daily improvements over time lead to stunning results.", author: "Robin Sharma" },
-    { text: "Your future is created by what you do today, not tomorrow.", author: "Robert Kiyosaki" },
-    { text: "Start where you are. Use what you have. Do what you can.", author: "Arthur Ashe" }
+    { text: "Your future is created by what you do today, not tomorrow.", author: "Robert Kiyosaki" }
   ]
 };
 
-// 2. APP STATE MANAGEMENT
+// 2. STATE MANAGEMENT
 let appState = {
   dailyFocus: localStorage.getItem('b612_dailyFocus') || '',
   stamps: JSON.parse(localStorage.getItem('b612_stamps')) || [false, false, false, false, false, false, false],
@@ -41,13 +39,13 @@ let appState = {
   timer: {
     isRunning: false,
     startTime: null,
-    targetDuration: 1500, // 25 mins default
+    targetDuration: 1500,
     elapsedBeforePause: 0,
     intervalId: null
   }
 };
 
-// 3. INITIALIZATION & ROUTING
+// 3. INITIALIZATION
 document.addEventListener('DOMContentLoaded', () => {
   initLanding();
   setupEventListeners();
@@ -65,14 +63,14 @@ function initLanding() {
 }
 
 function setupEventListeners() {
-  // Start Button Click (Landing -> App Shell)
+  // Smooth Landing Exit
   document.getElementById('start-btn').addEventListener('click', () => {
     const landing = document.getElementById('landing-page');
-    landing.style.opacity = '0';
+    landing.classList.add('exiting');
     setTimeout(() => {
       landing.classList.add('hidden');
       document.getElementById('app-shell').classList.remove('hidden');
-    }, 400);
+    }, 550);
   });
 
   // Navigation Links
@@ -83,20 +81,19 @@ function setupEventListeners() {
 
       item.classList.add('active');
       const target = item.getAttribute('data-target');
-      document.getElementById(target).classList.add('active-view');
+      
+      // Delay render state slightly to trigger smooth CSS keyframe transition
+      requestAnimationFrame(() => {
+        document.getElementById(target).classList.add('active-view');
+      });
     });
   });
 
-  // Daily Focus Set
+  // Forms & Timers
   document.getElementById('save-focus-btn').addEventListener('click', saveDailyFocus);
-
-  // Add Deadline Form
   document.getElementById('add-deadline-form').addEventListener('submit', handleAddDeadline);
-
-  // Add Goal Form
   document.getElementById('add-goal-form').addEventListener('submit', handleAddGoal);
 
-  // Timer Modal Controls
   document.getElementById('quick-timer-btn').addEventListener('click', () => {
     document.getElementById('timer-modal').classList.remove('hidden');
   });
@@ -131,7 +128,7 @@ function renderAllViews() {
   renderGoals();
 }
 
-// 4. LOBBY LOGIC
+// 4. LOBBY ENGINE
 function saveDailyFocus() {
   const val = document.getElementById('daily-focus-input').value.trim();
   if (!val) return;
@@ -143,13 +140,12 @@ function saveDailyFocus() {
 function renderLobby() {
   const display = document.getElementById('saved-focus-text');
   if (appState.dailyFocus) {
-    display.textContent = `🎯 ${appState.dailyFocus}`;
+    display.textContent = `🌹 Today's Target: ${appState.dailyFocus}`;
     display.classList.remove('hidden');
   } else {
     display.classList.add('hidden');
   }
 
-  // Active Beacons in Lobby
   const list = document.getElementById('lobby-beacon-list');
   list.innerHTML = '';
   
@@ -162,14 +158,14 @@ function renderLobby() {
         activeCount++;
         const li = document.createElement('li');
         li.className = `beacon-item ${b.stage}`;
-        li.innerHTML = `<span class="beacon-title">${b.title}</span><span class="beacon-date">Due Today</span>`;
+        li.innerHTML = `<span class="beacon-title">${b.title}</span><span class="beacon-date">Active Beacon Today</span>`;
         list.appendChild(li);
       }
     });
   });
 
   if (activeCount === 0) {
-    list.innerHTML = `<li style="font-size: 0.85rem; color: var(--text-muted);">No navigation beacons active for today. You're on smooth skies! ☕</li>`;
+    list.innerHTML = `<li style="font-size: 0.85rem; color: var(--text-muted);">No starlight beacons active today. Clear skies ahead! 🌌</li>`;
   }
 }
 
@@ -192,7 +188,7 @@ function renderHabitStamps() {
   });
 }
 
-// 5. BACKWARDS-PLANNING ENGINE & DEADLINES
+// 5. BACKWARDS-PLANNING & DEADLINE ENGINE
 function handleAddDeadline(e) {
   e.preventDefault();
   const title = document.getElementById('dl-title').value.trim();
@@ -224,33 +220,30 @@ function createAssessmentWithBeacons(title, dueDateStr, weight) {
     return d.toISOString().split('T')[0];
   };
 
-  // Scout Beacon (T-7 Days)
   if (diffDays >= 7) {
     beacons.push({
       id: `b_scout_${deadlineId}`,
-      title: `🔭 Scout Beacon: Outline & Scope [${title}]`,
+      title: `🔭 Scout Beacon: Scope & Outline [${title}]`,
       targetDate: getOffsetDate(7),
       stage: 'scout',
       completed: false
     });
   }
 
-  // Fueling Beacon (T-3 Days)
   if (diffDays >= 4) {
     beacons.push({
       id: `b_fuel_${deadlineId}`,
-      title: `☕ Fueling Beacon: Deep Work Draft on [${title}]`,
+      title: `🚀 Fueling Beacon: Execution Draft [${title}]`,
       targetDate: getOffsetDate(3),
       stage: 'fueling',
       completed: false
     });
   }
 
-  // Landing Beacon (T-24 Hours)
   if (diffDays >= 1) {
     beacons.push({
       id: `b_land_${deadlineId}`,
-      title: `🛬 Landing Beacon: Final Polish for [${title}]`,
+      title: `🪐 Landing Beacon: Final Polish [${title}]`,
       targetDate: getOffsetDate(1),
       stage: 'landing',
       completed: false
@@ -283,7 +276,6 @@ function renderDeadlinesAndBeacons() {
     });
   });
 
-  // Check Overload Warning
   const isOverloaded = Object.values(dateWorkload).some(score => score >= 6);
   const warningBanner = document.getElementById('overload-warning');
   if (isOverloaded) {
@@ -293,7 +285,7 @@ function renderDeadlinesAndBeacons() {
   }
 }
 
-// 6. 30-MINUTE TIME BLOCK GRID (48 Slots)
+// 6. 30-MINUTE TIME BLOCK GRID
 function renderTimeBlockGrid() {
   const grid = document.getElementById('time-block-grid');
   grid.innerHTML = '';
@@ -317,7 +309,7 @@ function renderTimeBlockGrid() {
     input.type = 'text';
     input.className = 'slot-input';
     input.value = dayData[i] || '';
-    input.placeholder = i % 2 === 0 ? '☕ Plan block...' : '';
+    input.placeholder = i % 2 === 0 ? '✨ Block schedule...' : '';
 
     input.addEventListener('change', (e) => {
       if (!appState.timeBlocks[targetDate]) appState.timeBlocks[targetDate] = {};
@@ -331,7 +323,7 @@ function renderTimeBlockGrid() {
   }
 }
 
-// 7. GOAL STUDIO LOGIC
+// 7. GOAL STUDIO
 function handleAddGoal(e) {
   e.preventDefault();
   const goalTitle = document.getElementById('goal-title').value.trim();
@@ -362,14 +354,14 @@ function renderGoals() {
     card.className = 'goal-card';
     card.innerHTML = `
       <div class="goal-title">🌌 ${g.goalTitle}</div>
-      <div class="goal-sub">🎯 Monthly Target: ${g.monthlyTarget}</div>
+      <div class="goal-sub">🪐 Monthly Target: ${g.monthlyTarget}</div>
       <div class="goal-action">⚡ Daily Action: ${g.dailyAction}</div>
     `;
     container.appendChild(card);
   });
 }
 
-// 8. SPEED TIMER (TAB-SLEEP PROOF LOGIC)
+// 8. SPEED TIMER (TAB-SLEEP PROOF)
 function toggleTimer() {
   if (appState.timer.isRunning) {
     pauseTimer();
@@ -382,7 +374,6 @@ function startTimer() {
   appState.timer.isRunning = true;
   appState.timer.startTime = Date.now();
   document.getElementById('timer-start-btn').textContent = 'Pause';
-  document.getElementById('timer-mascot').textContent = '⚡';
 
   appState.timer.intervalId = setInterval(updateTimerTick, 200);
 }
@@ -392,7 +383,6 @@ function pauseTimer() {
   clearInterval(appState.timer.intervalId);
   appState.timer.elapsedBeforePause += Math.floor((Date.now() - appState.timer.startTime) / 1000);
   document.getElementById('timer-start-btn').textContent = 'Resume';
-  document.getElementById('timer-mascot').textContent = '☕';
 }
 
 function resetTimer() {
@@ -400,7 +390,6 @@ function resetTimer() {
   appState.timer.isRunning = false;
   appState.timer.elapsedBeforePause = 0;
   document.getElementById('timer-start-btn').textContent = 'Start Session';
-  document.getElementById('timer-mascot').textContent = '☕';
   renderTimerClock(appState.timer.targetDuration);
 }
 
